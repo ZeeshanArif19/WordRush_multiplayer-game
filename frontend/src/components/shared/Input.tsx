@@ -9,27 +9,29 @@ export const Input: React.FC<InputProps> = ({ label, className = '', ...props })
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
       {label && <label style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>{label}</label>}
       <input
+        className={className}
+        {...props}
         style={{
           width: '100%',
-          padding: '12px 16px',
-          background: 'rgba(0, 0, 0, 0.2)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '8px',
+          padding: '14px 16px',
+          background: 'var(--surface-color)',
+          border: '2px solid var(--border-color)',
+          borderRadius: '12px',
           color: 'var(--text-main)',
           fontSize: '16px',
-          outline: 'none',
-          transition: 'all 0.2s ease'
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
+          ...props.style
         }}
         onFocus={(e) => {
           e.target.style.borderColor = 'var(--primary)';
-          e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.05), 0 0 0 4px rgba(79, 161, 216, 0.2)';
+          if (props.onFocus) props.onFocus(e);
         }}
         onBlur={(e) => {
           e.target.style.borderColor = 'var(--border-color)';
-          e.target.style.boxShadow = 'none';
+          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.05)';
+          if (props.onBlur) props.onBlur(e);
         }}
-        className={className}
-        {...props}
       />
     </div>
   );

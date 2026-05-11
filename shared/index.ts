@@ -11,6 +11,7 @@ export interface PlayerState {
   hasWon: boolean;
   isGameOver: boolean;
   score: number;
+  hasUsedHint?: boolean;
 }
 
 export interface Player {
@@ -19,6 +20,8 @@ export interface Player {
   roomId?: string;
   state: PlayerState;
   totalScore: number;
+  dbId?: string;
+  isDisconnected?: boolean;
 }
 
 export interface RoomSettings {
@@ -39,6 +42,29 @@ export interface RoomResponse {
   roomId?: string;
   error?: string;
   player?: Player;
+  players?: Player[];
+}
+
+export interface LeaderboardEntry {
+  username: string;
+  global_score: number;
+}
+
+export interface PersonalStats {
+  global_score: number;
+  matches_played: number;
+  matches_won: number;
+  win_rate: number;
+  avg_points_per_round: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderName: string;
+  senderId: string;
+  text: string;
+  timestamp: number;
+  isSystem?: boolean;
 }
 
 // Typed Socket Events
@@ -49,12 +75,23 @@ export interface ServerToClientEvents {
   gameStateUpdated: (players: Player[]) => void; // Send updated states (scoreboards)
   gameOver: (data: { isRoundOver: boolean, winnerId?: string, targetWord: string }) => void;
   error: (message: string) => void;
+  returnedToLobby: () => void;
+  leftRoom: () => void;
+  chatMessage: (message: ChatMessage) => void;
 }
 
 export interface ClientToServerEvents {
-  createRoom: (playerName: string, settings: RoomSettings, callback: (response: RoomResponse) => void) => void;
-  joinRoom: (roomId: string, playerName: string, callback: (response: RoomResponse) => void) => void;
+  createRoom: (playerConfig: { name: string, dbId?: string }, settings: RoomSettings, callback: (response: RoomResponse) => void) => void;
+  joinRoom: (roomId: string, playerConfig: { name: string, dbId?: string }, callback: (response: RoomResponse) => void) => void;
+  startGame: (callback: (response: { success: boolean, error?: string }) => void) => void;
   submitGuess: (guess: string, callback: (response: { success: boolean, error?: string }) => void) => void;
+  requestHint: (callback: (response: { success: boolean, hint?: { index: number, letter: string }, error?: string }) => void) => void;
+  returnToLobby: (callback: (response: { success: boolean, error?: string }) => void) => void;
+  leaveRoom: (callback: (response: { success: boolean, error?: string }) => void) => void;
+  getLeaderboard: (callback: (response: { success: boolean, data?: LeaderboardEntry[], error?: string }) => void) => void;
+  getPersonalStats: (dbId: string, callback: (response: { success: boolean, data?: PersonalStats, error?: string }) => void) => void;
+  reconnect: (roomId: string, dbId: string, callback: (response: { success: boolean, player?: Player, players?: Player[], gameState?: { status: 'waiting' | 'playing' | 'finished', currentRound: number, totalRounds: number, roundEndTime?: number }, error?: string }) => void) => void;
+  sendMessage: (text: string, callback: (response: { success: boolean, error?: string }) => void) => void;
 }
 
 export interface InterServerEvents {

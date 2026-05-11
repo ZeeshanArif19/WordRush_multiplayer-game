@@ -12,6 +12,7 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className = '',
   disabled,
+  style,
   ...props 
 }) => {
   const getBackground = () => {
@@ -28,27 +29,45 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       style={{
-        padding: '12px 24px',
-        borderRadius: '8px',
+        padding: '14px 24px',
+        borderRadius: '16px',
         background: getBackground(),
-        border: getBorder(),
-        color: 'var(--text-main)',
+        border: variant === 'secondary' ? '2px solid var(--border-color)' : getBorder(),
+        color: variant === 'primary' ? 'white' : 'var(--text-main)',
         fontSize: '16px',
-        fontWeight: 600,
+        fontWeight: 800,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
         width: fullWidth ? '100%' : 'auto',
-        transition: 'all 0.2s ease',
+        transition: 'all 0.1s ease',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px'
+        gap: '8px',
+        boxShadow: variant === 'primary' ? '0 4px 0 rgba(0,0,0,0.15)' : '0 4px 0 var(--border-color)',
+        ...style
+      }}
+      onMouseDown={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.transform = 'translateY(4px)';
+          e.currentTarget.style.boxShadow = 'none';
+        }
+      }}
+      onMouseUp={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = variant === 'primary' ? '0 4px 0 rgba(0,0,0,0.15)' : '0 4px 0 var(--border-color)';
+        }
       }}
       onMouseEnter={(e) => {
         if (!disabled && variant === 'primary') e.currentTarget.style.background = 'var(--primary-hover)';
       }}
       onMouseLeave={(e) => {
         if (!disabled && variant === 'primary') e.currentTarget.style.background = 'var(--primary)';
+        if (!disabled) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = variant === 'primary' ? '0 4px 0 rgba(0,0,0,0.15)' : '0 4px 0 var(--border-color)';
+        }
       }}
       className={className}
       disabled={disabled}

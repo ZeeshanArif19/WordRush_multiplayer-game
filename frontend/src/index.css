@@ -1,17 +1,30 @@
 :root {
-  --bg-color: #f8fafc;
-  --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-  --surface-color: rgba(255, 255, 255, 0.95);
-  --border-color: rgba(0, 0, 0, 0.08);
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --primary: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --absent: #cbd5e1;
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Casual Game Color Palette */
+  --bg-color: #FFF9E6; /* Warm Cream */
+  --bg-gradient: radial-gradient(circle at top right, #FFF9E6, #FFF0D4);
+  --surface-color: rgba(255, 255, 255, 0.98);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --text-main: #4A3F35; /* Warm Charcoal */
+  --text-muted: #8E8379;
+  
+  --primary: #4FA1D8; /* Sky Blue */
+  --primary-hover: #3A8BC2;
+  --success: #78B159; /* Soft Casual Green */
+  --warning: #FFD166; /* Mustard Yellow */
+  --danger: #EF476F; /* Soft Red */
+  --absent: #A3AAB2; /* Slate Gray */
+  
+  --font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+:root.dark {
+  --bg-color: #121212;
+  --bg-gradient: radial-gradient(circle at top right, #2A2420, #121212);
+  --surface-color: rgba(30, 30, 30, 0.85);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-main: #F5F5F5;
+  --text-muted: #A0A0A0;
+  --absent: #3A3A3C;
 }
 
 * {
@@ -26,7 +39,9 @@ body {
   color: var(--text-main);
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* NO SCROLLING */
   display: flex;
   flex-direction: column;
 }
@@ -35,6 +50,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Glassmorphism Utilities */
@@ -42,9 +59,9 @@ body {
   background: var(--surface-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border-color); /* Thicker casual border */
+  border-radius: 24px; /* Much rounder */
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.05), 0 15px 35px -5px rgba(0, 0, 0, 0.1); /* Tactile bottom shadow */
 }
 
 /* Modal Styles */
@@ -64,7 +81,8 @@ body {
 }
 
 .modal-content {
-  background: #ffffff;
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
   border-radius: 24px;
   padding: 30px;
   width: 90%;
@@ -93,4 +111,13 @@ body {
   0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
   100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
+
+@keyframes flipIn {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+.cell-flip {
+  animation: flipIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }

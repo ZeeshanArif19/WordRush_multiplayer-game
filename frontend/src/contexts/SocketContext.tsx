@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { ClientToServerEvents, ServerToClientEvents, Player } from '@wordle/shared';
+import type { ClientToServerEvents, ServerToClientEvents, Player, ChatMessage } from '@wordle/shared';
 
 // Create a typed socket instance pointing to our backend
-// In development, Vite runs on 5173, Backend on 3001
-const URL = import.meta.env.MODE === 'production' ? undefined : 'http://localhost:3001';
+// Use VITE_API_URL in production, fallback to localhost for dev
+const URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL as string, {
   autoConnect: false // We connect manually when needed
 });
@@ -20,7 +20,12 @@ interface SocketContextType {
   totalRounds: number;
   roundEndTime?: number;
   setPlayer: (p: Player) => void;
+  setRoomPlayers: (players: Player[]) => void;
   setStatus: (s: SocketContextType['status']) => void;
+  setCurrentRound: (r: number) => void;
+  setTotalRounds: (r: number) => void;
+  setRoundEndTime: (t: number | undefined) => void;
+  chatMessages: ChatMessage[];
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -35,6 +40,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [currentRound, setCurrentRound] = useState(1);
   const [totalRounds, setTotalRounds] = useState(1);
   const [roundEndTime, setRoundEndTime] = useState<number | undefined>(undefined);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     socket.connect();
@@ -79,13 +85,34 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setStatus('finished');
     });
 
+    socket.on('returnedToLobby', () => {
+      setStatus('waiting');
+      setGameOverData(null);
+      setCurrentRound(1);
+    });
+
+    socket.on('leftRoom', () => {
+      setStatus('connected');
+      setPlayer(null);
+      setRoomPlayers([]);
+      setGameOverData(null);
+      setCurrentRound(1);
+      setChatMessages([]);
+      localStorage.removeItem('wordle_current_room');
+    });
+
+    socket.on('chatMessage', (message) => {
+      setChatMessages(prev => [...prev.slice(-99), message]); // Keep last 100 messages
+    });
+
     return () => {
       socket.disconnect();
+      socket.removeAllListeners();
     };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected, player, roomPlayers, status, gameOverData, currentRound, totalRounds, roundEndTime, setPlayer, setStatus }}>
+    <SocketContext.Provider value={{ socket, isConnected, player, roomPlayers, status, gameOverData, currentRound, totalRounds, roundEndTime, setPlayer, setRoomPlayers, setStatus, setCurrentRound, setTotalRounds, setRoundEndTime, chatMessages }}>
       {children}
     </SocketContext.Provider>
   );
