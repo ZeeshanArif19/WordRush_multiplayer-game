@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import helmet from 'helmet';
 import { Server } from 'socket.io';
 import { setupSockets } from './sockets/socketHandler';
+import { db } from './db';
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from '@wordle/shared';
 
 const app = express();
@@ -37,6 +38,13 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 setupSockets(io);
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+// Initialize DB and then start server
+db.init().then(() => {
+  httpServer.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to start server due to DB error:', err);
+  process.exit(1);
 });

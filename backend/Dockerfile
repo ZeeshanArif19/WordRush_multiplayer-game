@@ -13,9 +13,10 @@ RUN npm install
 # Copy source code
 COPY shared ./shared
 COPY backend ./backend
+COPY 5_letters.csv ./5_letters.csv
 
 # Build the shared package if needed, then build the backend
-RUN npm run build -w shared || true
+RUN npm run build -w shared
 RUN npm run build -w backend
 
 WORKDIR /app/backend

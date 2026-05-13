@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useGame } from '../../contexts/SocketContext';
 import { WORD_LENGTH, MAX_GUESSES } from '@wordle/shared';
 import type { LetterStatus, ChatMessage } from '@wordle/shared';
+import { Loader2 } from 'lucide-react';
 
 // --- SUBCOMPONENTS ---
 
@@ -599,8 +600,9 @@ export const GameScreen: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div style={{ padding: '8px 20px', background: 'var(--surface-color)', color: 'var(--text-muted)', borderRadius: '20px', fontSize: '14px', fontStyle: 'italic', display: 'flex', alignItems: 'center' }}>
-            Hint used
+          <div style={{ padding: '8px 20px', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--primary)', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+            <Loader2 size={16} className="animate-spin" style={{ animation: 'spin 2s linear infinite' }} />
+            {player?.state?.hasWon ? 'You won! Waiting for others...' : 'Waiting for others to finish...'}
           </div>
         )}
       </div>

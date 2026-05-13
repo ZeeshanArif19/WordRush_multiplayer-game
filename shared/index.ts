@@ -71,7 +71,7 @@ export interface ChatMessage {
 export interface ServerToClientEvents {
   playerJoined: (player: Player) => void;
   playerLeft: (playerId: string) => void;
-  gameStarted: (data: { currentRound: number, totalRounds: number, endTime?: number }) => void;
+  gameStarted: (data: { currentRound: number, totalRounds: number, endTime?: number, serverTime: number }) => void;
   gameStateUpdated: (players: Player[]) => void; // Send updated states (scoreboards)
   gameOver: (data: { isRoundOver: boolean, winnerId?: string, targetWord: string }) => void;
   error: (message: string) => void;
@@ -90,7 +90,7 @@ export interface ClientToServerEvents {
   leaveRoom: (callback: (response: { success: boolean, error?: string }) => void) => void;
   getLeaderboard: (callback: (response: { success: boolean, data?: LeaderboardEntry[], error?: string }) => void) => void;
   getPersonalStats: (dbId: string, callback: (response: { success: boolean, data?: PersonalStats, error?: string }) => void) => void;
-  reconnect: (roomId: string, dbId: string, callback: (response: { success: boolean, player?: Player, players?: Player[], gameState?: { status: 'waiting' | 'playing' | 'finished', currentRound: number, totalRounds: number, roundEndTime?: number }, error?: string }) => void) => void;
+  reconnect: (roomId: string, dbId: string, callback: (response: { success: boolean, player?: Player, players?: Player[], gameState?: { status: 'waiting' | 'playing' | 'finished', currentRound: number, totalRounds: number, roundEndTime?: number, serverTime: number }, error?: string }) => void) => void;
   sendMessage: (text: string, callback: (response: { success: boolean, error?: string }) => void) => void;
 }
 

@@ -6,7 +6,8 @@ import type { ClientToServerEvents, ServerToClientEvents, Player, ChatMessage } 
 // Use VITE_API_URL in production, fallback to localhost for dev
 const URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL as string, {
-  autoConnect: false // We connect manually when needed
+  autoConnect: false,
+  transports: ['websocket'] // Force websocket to avoid polling issues in Docker
 });
 
 interface SocketContextType {
@@ -66,7 +67,19 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     socket.on('gameStarted', (data) => {
       setCurrentRound(data.currentRound);
       setTotalRounds(data.totalRounds);
-      setRoundEndTime(data.endTime);
+      
+      // Sync clock: calculate offset between server and client
+      const serverTime = Number(data.serverTime);
+      const endTime = data.endTime ? Number(data.endTime) : undefined;
+      
+      if (!isNaN(serverTime)) {
+        const offset = Date.now() - serverTime;
+        const adjustedEndTime = endTime ? endTime + offset : undefined;
+        console.log(`[ClockSync] Server: ${serverTime}, Client: ${Date.now()}, Offset: ${offset}ms`);
+        setRoundEndTime(adjustedEndTime);
+      } else {
+        setRoundEndTime(endTime);
+      }
       setGameOverData(null);
       setStatus('playing');
     });
@@ -92,7 +105,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
 
     socket.on('leftRoom', () => {
-      setStatus('connected');
+      setStatus('lobby');
       setPlayer(null);
       setRoomPlayers([]);
       setGameOverData(null);

@@ -33,7 +33,8 @@ export function setupSockets(io: Server<ClientToServerEvents, ServerToClientEven
     io.to(data.roomId).emit('gameStarted', {
       currentRound: data.currentRound,
       totalRounds: data.totalRounds,
-      endTime: data.endTime
+      endTime: data.endTime,
+      serverTime: data.serverTime
     });
     io.to(data.roomId).emit('gameStateUpdated', data.players);
   });
@@ -296,8 +297,9 @@ export function setupSockets(io: Server<ClientToServerEvents, ServerToClientEven
           gameState: {
             status: result.room.status,
             currentRound: result.room.currentRound,
-            totalRounds: result.room.settings.rounds,
-            roundEndTime: result.room.roundEndTime
+            totalRounds: result.room.settings?.rounds || 1,
+            roundEndTime: result.room.roundEndTime,
+            serverTime: Date.now()
           }
         });
       } catch (err) {

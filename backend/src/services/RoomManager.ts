@@ -33,6 +33,7 @@ export interface Room {
   roundEndTime?: number;
   timerId?: NodeJS.Timeout;
   dbRoundId?: string; // Track the current round in the database
+  firstWinnerId?: string; // Track the first person to guess correctly
 }
 
 export class RoomManager extends EventEmitter {
@@ -258,6 +259,7 @@ export class RoomManager extends EventEmitter {
 
     room.status = 'playing';
     room.targetWord = this.generateTargetWord();
+    room.firstWinnerId = undefined;
 
     // Reset player state for the new round
     for (const player of room.players.values()) {
@@ -286,7 +288,7 @@ export class RoomManager extends EventEmitter {
     if (room.timerId) clearTimeout(room.timerId);
 
     if (room.settings.timerSeconds > 0) {
-      room.roundEndTime = Date.now() + (room.settings.timerSeconds * 1000);
+      room.roundEndTime = Date.now() + (Number(room.settings.timerSeconds) * 1000);
       room.timerId = setTimeout(() => {
         this.handleRoundTimeout(roomId);
       }, room.settings.timerSeconds * 1000);
@@ -299,6 +301,7 @@ export class RoomManager extends EventEmitter {
       currentRound: room.currentRound,
       totalRounds: room.settings.rounds,
       endTime: room.roundEndTime,
+      serverTime: Date.now(),
       players: Array.from(room.players.values())
     });
   }
@@ -314,7 +317,7 @@ export class RoomManager extends EventEmitter {
         player.state.score = 0;
       }
     }
-    this.endRound(roomId);
+    this.endRound(roomId, room.firstWinnerId);
   }
 
   private async endRound(roomId: string, winnerId?: string) {
@@ -441,13 +444,18 @@ export class RoomManager extends EventEmitter {
       player.state.hasWon = true;
       player.state.isGameOver = true;
       
+      // Track the first winner of the round
+      if (!room.firstWinnerId) {
+        room.firstWinnerId = player.id;
+      }
+      
       // Calculate Tries Points
       const triesPoints = (7 - player.state.attempts) * 10;
       
       // Calculate Time Points
       let timePoints = 0;
       if (room.settings.timerSeconds > 0 && room.roundEndTime) {
-         const totalTimeMs = room.settings.timerSeconds * 1000;
+         const totalTimeMs = Number(room.settings.timerSeconds) * 1000;
          const remainingTimeMs = Math.max(0, room.roundEndTime - Date.now());
          const elapsedTimeMs = totalTimeMs - remainingTimeMs;
          const elapsedFraction = elapsedTimeMs / totalTimeMs;
@@ -461,26 +469,21 @@ export class RoomManager extends EventEmitter {
       }
       
       const hintPenalty = player.state.hasUsedHint ? 10 : 0;
-      
       player.state.score = Math.max(0, triesPoints + timePoints - hintPenalty);
-      
-      roundEnded = true;
-      winnerId = player.id;
     } else if (lost) {
       player.state.isGameOver = true;
       player.state.score = 0;
-      
-      // Check if ALL players have lost
-      const allLost = Array.from(room.players.values()).every(p => p.state.isGameOver && !p.state.hasWon);
-      if (allLost) {
-        roundEnded = true;
-      }
     }
 
-    if (roundEnded) {
+    // Check if ALL players are finished (either won or lost)
+    const allFinished = Array.from(room.players.values()).every(p => p.state.isGameOver || p.isDisconnected);
+    
+    if (allFinished) {
+      roundEnded = true;
+      winnerId = room.firstWinnerId;
       this.endRound(roomId, winnerId);
     } else {
-       // just emit state update
+       // Just emit state update so others see the progress
        this.emit('gameStateUpdated', {
          roomId,
          players: Array.from(room.players.values())
@@ -570,7 +573,7 @@ export class RoomManager extends EventEmitter {
       if (allDone) {
         // If everyone left is done, check if someone has won
         const winner = remainingPlayers.find(p => p.state.hasWon);
-        this.endRound(roomId, winner?.id);
+        this.endRound(roomId, room.firstWinnerId);
       } else {
         // Just emit that the state updated
         this.emit('gameStateUpdated', { roomId, players: remainingPlayers });

@@ -156,7 +156,19 @@ export const JoinScreen: React.FC = () => {
           }
           setCurrentRound(response.gameState.currentRound);
           setTotalRounds(response.gameState.totalRounds);
-          setRoundEndTime(response.gameState.roundEndTime);
+          
+          // Sync clock: calculate offset between server and client
+          const serverTime = Number(response.gameState.serverTime);
+          const endTime = response.gameState.roundEndTime ? Number(response.gameState.roundEndTime) : undefined;
+          
+          if (!isNaN(serverTime)) {
+            const offset = Date.now() - serverTime;
+            const adjustedEndTime = endTime ? endTime + offset : undefined;
+            console.log(`[ClockSync-Reconnect] Server: ${serverTime}, Client: ${Date.now()}, Offset: ${offset}ms`);
+            setRoundEndTime(adjustedEndTime);
+          } else {
+            setRoundEndTime(endTime);
+          }
           setStatus(response.gameState.status);
         } else {
           // If reconnect fails (e.g. grace period expired), clear the room from storage

@@ -15,7 +15,7 @@ RUN npm install
 COPY shared ./shared
 COPY frontend ./frontend
 
-RUN npm run build -w shared || true
+RUN npm run build -w shared
 RUN npm run build -w frontend
 
 # Production stage
