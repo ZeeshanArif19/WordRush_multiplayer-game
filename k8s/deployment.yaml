@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordrush-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wordrush-backend
+  template:
+    metadata:
+      labels:
+        app: wordrush-backend
+    spec:
+      containers:
+      - name: backend
+        # Replace 'your-username' with your actual Docker Hub username
+        image: zeeshanarif19/wordrush-backend:v1
+        ports:
+        - containerPort: 3001
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: wordrush-config
+              key: PORT
+        - name: ALLOWED_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: wordrush-config
+              key: ALLOWED_ORIGINS
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: wordrush-secrets
+              key: DATABASE_URL
+        # Health check to ensure k3s knows when the app is ready
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 10
+          periodSeconds: 5
