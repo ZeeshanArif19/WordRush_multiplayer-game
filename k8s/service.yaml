@@ -7,6 +7,6 @@ spec:
     app: wordrush-backend
   ports:
     - protocol: TCP
-      port: 80
+      port: 3001
       targetPort: 3001
   type: LoadBalancer
