@@ -17,9 +17,10 @@ data:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-      - job_name: 'kubernetes-nodes'
-        kubernetes_sd_configs:
-          - role: node
+      - job_name: 'wordrush-backend'
+        static_configs:
+          - targets: ['wordrush-backend-service.default.svc.cluster.local:3001']
+        metrics_path: '/metrics'
 ---
 # 2. Jenkins Deployment
 apiVersion: apps/v1
@@ -115,7 +116,24 @@ spec:
           path: /home/ubuntu/prometheus_data
           type: DirectoryOrCreate
 ---
-# 4. Grafana Deployment
+# 4. Grafana Datasource Provisioning ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource
+  namespace: infra
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.infra.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+---
+# 5. Grafana Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -147,8 +165,13 @@ spec:
         volumeMounts:
         - name: grafana-storage
           mountPath: /var/lib/grafana
+        - name: grafana-datasource
+          mountPath: /etc/grafana/provisioning/datasources
       volumes:
       - name: grafana-storage
         hostPath:
           path: /home/ubuntu/grafana_data
           type: DirectoryOrCreate
+      - name: grafana-datasource
+        configMap:
+          name: grafana-datasource

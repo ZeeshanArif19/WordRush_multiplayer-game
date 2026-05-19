@@ -6,6 +6,10 @@ import { Server } from 'socket.io';
 import { setupSockets } from './sockets/socketHandler';
 import { db } from './db';
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from '@wordle/shared';
+import { collectDefaultMetrics, register } from 'prom-client';
+
+// Auto-collect default Node.js metrics (CPU, memory, event loop, GC, etc.)
+collectDefaultMetrics({ prefix: 'wordrush_' });
 
 const app = express();
 
@@ -15,6 +19,16 @@ app.use(helmet());
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+// Prometheus metrics endpoint - scraped by Prometheus every 15s
+app.get('/metrics', async (_req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (err) {
+    res.status(500).end(err);
+  }
 });
 
 const httpServer = createServer(app);
@@ -48,3 +62,4 @@ db.init().then(() => {
   console.error('Failed to start server due to DB error:', err);
   process.exit(1);
 });
+
