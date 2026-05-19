@@ -50,6 +50,13 @@ spec:
           hostPort: 8080
         - containerPort: 50000
           hostPort: 50000
+        resources:
+          requests:
+            memory: "250Mi"
+            cpu: "100m"
+          limits:
+            memory: "400Mi"
+            cpu: "400m"
         volumeMounts:
         - name: jenkins-home
           mountPath: /var/jenkins_home
@@ -86,6 +93,13 @@ spec:
         ports:
         - containerPort: 9090
           hostPort: 9090
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "50m"
+          limits:
+            memory: "200Mi"
+            cpu: "250m"
         volumeMounts:
         - name: prometheus-config-volume
           mountPath: /etc/prometheus/prometheus.yml
@@ -123,6 +137,13 @@ spec:
         ports:
         - containerPort: 3000
           hostPort: 3000
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "50m"
+          limits:
+            memory: "100Mi"
+            cpu: "200m"
         volumeMounts:
         - name: grafana-storage
           mountPath: /var/lib/grafana
