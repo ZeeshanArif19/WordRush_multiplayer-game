@@ -33,9 +33,9 @@ pipeline {
                 echo 'Deploying to K3s cluster...'
                 // Since the Deployment yaml is inside the repo under 'k8s/deployment.yaml', 
                 // we apply the config to ensure limits are updated, then trigger a rolling restart.
-                sh '/var/jenkins_home/bin/kubectl apply -f k8s/deployment.yaml'
-                sh '/var/jenkins_home/bin/kubectl rollout restart deployment/wordrush-backend'
-                sh '/var/jenkins_home/bin/kubectl rollout status deployment/wordrush-backend --timeout=60s'
+                sh '/var/jenkins_home/bin/kubectl apply -f k8s/deployment.yaml -n default'
+                sh '/var/jenkins_home/bin/kubectl rollout restart deployment/wordrush-backend -n default'
+                sh '/var/jenkins_home/bin/kubectl rollout status deployment/wordrush-backend -n default --timeout=60s'
             }
         }
     }
