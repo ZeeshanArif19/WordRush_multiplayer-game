@@ -116,6 +116,21 @@ spec:
           path: /home/ubuntu/prometheus_data
           type: DirectoryOrCreate
 ---
+# 4. Prometheus Service (so Grafana can reach it via internal DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: infra
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
+---
 # 4. Grafana Datasource Provisioning ConfigMap
 apiVersion: v1
 kind: ConfigMap
