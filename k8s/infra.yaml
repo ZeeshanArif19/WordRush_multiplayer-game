@@ -42,6 +42,9 @@ spec:
         image: jenkins/jenkins:lts
         securityContext:
           runAsUser: 0 # Run as root to access Docker socket
+        env:
+        - name: JAVA_OPTS
+          value: "-Xmx300m -XX:+UseSerialGC" # Optimizes JVM memory usage for small servers
         ports:
         - containerPort: 8080
           hostPort: 8080
